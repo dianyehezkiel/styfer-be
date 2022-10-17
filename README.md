@@ -181,21 +181,7 @@ response data:
         ]
     }
 
-#### 2.2.4. POST /posts/[:post_id]/likes
-
-> like or unlike a post
-
-required headers:
-
-    Authorization: "token_from_logged_in_user"
-
-response data:
-
-    {
-        message: "Successfully <like|unlike> <post_id_from_db> post"
-    }
-
-#### 2.2.5. POST /posts
+#### 2.2.4. POST /posts
 
 > create a post
 
@@ -223,7 +209,21 @@ response body:
         } || undefined
     }
 
-#### 2.2.5. DELETE /posts/[:post_id]
+#### 2.2.5. POST /posts/[:post_id]/likes
+
+> like or unlike a post
+
+required headers:
+
+    Authorization: "token_from_logged_in_user"
+
+response data:
+
+    {
+        message: "Successfully <like|unlike> <post_id_from_db> post"
+    }
+
+#### 2.2.6. DELETE /posts/[:post_id]
 
 > delete a post
 
