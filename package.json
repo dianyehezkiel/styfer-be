@@ -5,9 +5,9 @@
   "main": "index.js",
   "scripts": {
     "tsc": "tsc",
-    "dev": "ts-node-dev src/index.ts",
+    "dev": "ts-node-dev src/index.ts NODE_ENV=development",
     "lint": "eslint --ext .ts .",
-    "start": "node build/src/index.js"
+    "start": "node build/src/index.js NODE_ENV=production"
   },
   "keywords": [
     "styfer"

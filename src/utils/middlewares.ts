@@ -1,9 +1,10 @@
 import { RequestHandler } from 'express';
 import jwt, { Secret } from 'jsonwebtoken';
-import { isAccountPublic, isString, parseString } from '.';
+import { isAccountPublic, isString } from '.';
 import { SECRET } from '../../lib/constant';
 import Account from '../../models/account';
 import { AccountPublic } from '../types';
+import logger from './logger';
 
 // interface Params {
 //   [key: string]: string;
@@ -12,6 +13,14 @@ import { AccountPublic } from '../types';
 // type ResBody = Record<string, unknown>;
 
 // type ReqBody = Record<string, unknown>;
+
+export const requestLogger: RequestHandler = (req, _res, next) => {
+  logger.info('Method:', req.method);
+  logger.info('Path:  ', req.path);
+  logger.info('Body:  ', req.body);
+  logger.info('---');
+  next();
+};
 
 /**
  * Get token from request headers and put it to request body
@@ -24,7 +33,6 @@ export const tokenExtractor: RequestHandler = (req, _res, next) => {
   if (authorization && authorization.toLowerCase().startsWith('bearer ')) {
     req.body.token = authorization.substring(7);
   }
-  console.log("req on tokenExtractor", req.body);
   next();
 };
 
@@ -36,8 +44,10 @@ export const tokenExtractor: RequestHandler = (req, _res, next) => {
  * @returns {void}
  */
 export const userExtractor: RequestHandler = (req , res, next) => {
-  const token = parseString(req.body.token, 'token');
+  const token = (req.body.token as string) ?? undefined;
   if (!token) {
+    console.log('error no token');
+    next();
     return;
   }
 

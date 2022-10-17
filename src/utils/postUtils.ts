@@ -1,15 +1,13 @@
-import { parseCreator, parseString } from ".";
-import { NewPost, NewPostFromFields } from "../types";
+import { parseString } from ".";
+import { NewPostReq, NewPostReqFromFields } from "../types";
 
-export const toNewPost = ({
+export const toNewPostReq = ({
   img_src,
-  title,
-  creator,
-}: NewPostFromFields): NewPost => {
+  desc,
+}: NewPostReqFromFields): NewPostReq => {
   return {
     img_src: parseString(img_src, 'Image Source'),
-    title: parseString(title, 'Title'),
-    creator: parseCreator(creator),
-    createdAt: new Date(),
+    desc: parseString(desc, 'desc'),
+    created_at: new Date(),
   };
 };

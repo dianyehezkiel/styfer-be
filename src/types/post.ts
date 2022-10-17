@@ -17,12 +17,10 @@ export type PostLikedBy = Pick<Post, '_id' | 'likes' | 'liked_by'>;
 export interface NewPostReqFromFields {
   img_src: unknown,
   desc: unknown,
-  creator: unknown,
 }
 
 export interface NewPostReq {
   img_src: string;
   desc: string;
   created_at: Date;
-  creator?: AccountPublic
 }

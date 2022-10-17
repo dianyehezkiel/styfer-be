@@ -1,7 +1,6 @@
 import { AccountPublic } from "../types";
 
 export * from './accountUtils';
-export * from './userUtils';
 export * from './postUtils';
 
 export function isString (text: unknown): text is string {

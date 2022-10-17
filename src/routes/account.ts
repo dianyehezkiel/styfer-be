@@ -8,7 +8,12 @@ import {
   ResBody,
   SignupReqFromFields,
 } from '../types';
-import { toLoginReq, toPwdChangeReq, toSignupReq, isAccountPublic } from '../utils';
+import {
+  toLoginReq,
+  toPwdChangeReq,
+  toSignupReq,
+  isAccountPublic,
+} from '../utils';
 import { tokenExtractor, userExtractor } from '../utils/middlewares';
 import bcrypt from 'bcrypt';
 import jwt, { Secret } from 'jsonwebtoken';
@@ -23,9 +28,9 @@ const accountRouter = express.Router();
 accountRouter.use(tokenExtractor);
 
 accountRouter.get('/', userExtractor, (req, res) => {
-  const acc = (req.body.acc as unknown);
-console.log("acc on router", acc);
-  if (!isAccountPublic(acc)) {
+  const acc = req.body.acc as unknown;
+  console.log('acc on router', acc);
+  if (!acc || !isAccountPublic(acc)) {
     res.status(400).send({
       error: 'No account data',
     });
@@ -61,7 +66,9 @@ accountRouter.post<'/login', Params, ResBody, LoginReqFromFields>(
   (req, res) => {
     const { username, email, password } = toLoginReq(req.body);
 
-    Account.findOne({ username, email })
+    const filter = username ? { username } : { email };
+
+    Account.findOne(filter)
       .then((acc) => {
         if (!acc) {
           res.status(404).send({
@@ -99,51 +106,50 @@ accountRouter.post<'/signup', Params, ResBody, SignupReqFromFields>(
   (req, res) => {
     const { username, email, password } = toSignupReq(req.body);
 
-    let existedUsername: string | undefined;
     Account.findOne({ username })
       .then((user) => {
-        existedUsername = user?.username;
-      })
-      .catch((error) => {
-        res.status(500).send({
-          error: `Server Error: ${error}`,
+        const existedUsername = user?.username;
+        if (existedUsername) {
+          res.status(400).send({
+            error: 'Username exist',
+          });
+          return;
+        }
+
+        if (password.length < 8) {
+          res.status(400).send({
+            error: 'Password must at least 8 characters long.',
+          });
+          return;
+        }
+
+        const hashedPassword = bcrypt.hashSync(password, SALTROUNDS);
+
+        const newAccount = new Account({
+          username,
+          email,
+          password_hash: hashedPassword,
         });
-      });
 
-    if(existedUsername) {
-      res.status(400).send({
-        error: 'Username existed.',
-      });
-      return;
-    }
-
-    if (password.length < 8) {
-      res.status(400).send({
-        error: 'Password must at least 8 characters long.',
-      });
-      return;
-    }
-
-    const hashedPassword = bcrypt.hashSync(password, SALTROUNDS);
-
-    const newAccount = new Account({
-      username,
-      email,
-      password_hash: hashedPassword,
-    });
-
-    newAccount
-      .save()
+        return newAccount.save();
+      })
       .then((savedAcc) => {
+        if (!savedAcc) {
+          return;
+        }
+
         const newUser = new User({
           user: savedAcc._id,
           posts: [],
           liked_posts: [],
         });
-
         return newUser.save();
       })
       .then((savedUser) => {
+        if (!savedUser) {
+          return;
+        }
+
         const accForToken: AccountPublic = {
           _id: savedUser.user.toString(),
           username,
@@ -197,27 +203,18 @@ accountRouter.put('/change-password', userExtractor, (req, res) => {
         return;
       }
 
-      const newPassHash = bcrypt.hashSync(newPassword, SALTROUNDS);
+      acc.password_hash = bcrypt.hashSync(newPassword, SALTROUNDS);
 
-      return Account.findOneAndUpdate(
-        { username },
-        { password_hash: newPassHash },
-      );
+      return acc.save();
     })
     .then((updatedAcc) => {
       if (!updatedAcc) {
-        res.status(403).send({
-          error: 'failed update account.',
-        });
         return;
       }
-      // const accForToken = {
-      //   _id: updatedAcc._id,
-      //   username: updatedAcc.username,
-      // };
 
-      // const token = jwt.sign(accForToken, SECRET as Secret);
-      res.send();
+      res.send({
+        message: 'Password changed successfully',
+      });
     })
     .catch((error) => {
       res.status(500).send({ error: `Server Error: ${error}` });

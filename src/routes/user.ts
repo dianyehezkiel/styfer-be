@@ -37,12 +37,16 @@ userRouter.get('/:id', (req, res) => {
       likes: 1,
     })
     .then((user) => {
-      const userInfo = user
-        ? {
-          user: user.user,
-          posts: user.posts,
-        }
-        : undefined;
+      if (!user) {
+        res.status(404).send({
+          error: `Cannot find user with id ${id}`
+        });
+        return;
+      }
+      const userInfo = {
+        user: user.user,
+        posts: user.posts,
+      };
 
       res.json(userInfo);
     })
@@ -68,12 +72,16 @@ userRouter.get('/:id/likes', (req, res) => {
       creator: 1,
     })
     .then((user) => {
-      const userInfo = user
-        ? {
-          user: user.user,
-          liked_posts: user.liked_posts,
-        }
-        : undefined;
+      if (!user) {
+        res.status(404).send({
+          error: `Cannot find user with id ${id}`
+        });
+        return;
+      }
+      const userInfo = {
+        user: user.user,
+        liked_posts: user.liked_posts,
+      };
 
       res.json(userInfo);
     })
@@ -81,70 +89,5 @@ userRouter.get('/:id/likes', (req, res) => {
       res.status(500).send({ Error: `Server error: ${error}` });
     });
 });
-
-// userRouter.get('/:id', (req, res) => {
-//   const id = req.params.id;
-//   const post = userServices.getUser(id);
-
-//   if (!post) {
-//     res.status(404).send(`Cannot find user with id: ${id}`);
-//   } else {
-//     res.send(post);
-//   }
-// });
-
-// userRouter.post('/', (req, res) => {
-//   const { username, email, password } = toNewUser(req.body as NewUserFromFields);
-
-//   User.findOne({ username })
-//     .then((user) => {
-//       if (user) {
-//         res.status(400).json({ error: 'username must be unique' });
-//         return;
-//       }
-//     })
-//     .catch((err) => {
-//       res.status(500).json({ error: `Server error: ${err}` });
-//     });
-
-//   if (!password) {
-//     res.status(400).json({
-//       error: 'password must be provided!',
-//     });
-//     return;
-//   }
-
-//   if (password.length < 8) {
-//     res.status(400).json({
-//       error: 'password must be at least 8 characters long',
-//     });
-//     return;
-//   }
-
-//   if (!isValidEmail(email)) {
-//     res.status(400).json({
-//       error: 'email is not valid',
-//     });
-//     return;
-//   }
-
-//   const saltRounds = 10;
-  
-//   bcrypt.hash(password, saltRounds)
-//     .then((passwordHash) => {
-//       const user = new User({
-//         username,
-//         email,
-//         passwordHash,
-//       });
-//       return user.save();
-//     })
-//     .then((savedUser) => {
-//       res.status(201).json(savedUser);
-//     })
-//     .catch((err) => {
-//       res.status(500).json({ error: `Server error: ${err}` });
-//     });
-// });
 
 export default userRouter;

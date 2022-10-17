@@ -11,6 +11,7 @@ import userRouter from './routes/user';
 import postRouter from './routes/post';
 import connectToMongoDB from './utils/connectToMongoDb';
 import accountRouter from './routes/account';
+import { requestLogger } from './utils/middlewares';
 
 
 connectToMongoDB()
@@ -38,6 +39,7 @@ connectToMongoDB()
 const app = express();
 app.use(cors());
 app.use(express.json());
+app.use(requestLogger);
 
 // define route
 app.use('/users', userRouter);
