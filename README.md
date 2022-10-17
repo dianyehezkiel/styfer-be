@@ -209,7 +209,7 @@ response body:
         } || undefined
     }
 
-#### 2.2.5. POST /posts/[:post_id]/likes
+#### 2.2.5. PUT /posts/[:post_id]/likes
 
 > like or unlike a post
 
