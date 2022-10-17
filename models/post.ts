@@ -1,6 +1,6 @@
-import mongoose, { Document, Types } from "mongoose";
+import mongoose, { Types } from "mongoose";
 
-interface IPost extends Document {
+interface IPost {
   img_src: string;
   desc: string;
   created_at: Date;
