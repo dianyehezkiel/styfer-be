@@ -7,3 +7,4 @@ TODO: make jwt expired
 TODO: create error object { status, message }
 TODO: create session
 TODO: make session invalid after password changed
+TODO: Handle data not complete when create a post
