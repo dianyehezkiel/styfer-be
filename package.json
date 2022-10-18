@@ -7,7 +7,7 @@
     "tsc": "tsc",
     "dev": "ts-node-dev src/index.ts NODE_ENV=development",
     "lint": "eslint --ext .ts .",
-    "start": "node build/src/index.js NODE_ENV=production"
+    "start": "node build/index.js NODE_ENV=production"
   },
   "keywords": [
     "styfer"
