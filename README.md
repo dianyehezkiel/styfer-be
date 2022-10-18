@@ -114,13 +114,13 @@ request body:
 
 optional query:
 
-    page={number}
+    page={positive integer}
+    limit={positive integer}
 
 response data:
 
     {
         "page": 1,
-        "total_pages": 999,
         "data_length": 20,
         "posts": [
             {
@@ -162,14 +162,14 @@ response data:
 
 optional query:
 
-    page={number}
+    page={positive integer}
+    limit={positive integer}
 
 response data:
 
     {
         "_id": "post_id_from_db",
         "page": 1,
-        "total_pages": 10,
         "data_length": 20,
         "likes": 200
         "liked_by": [
@@ -245,7 +245,8 @@ response data:
 
 optional query:
 
-    page={number}
+    page={positive integer}
+    limit={positive integer}
 
 response data:
 
@@ -255,7 +256,6 @@ response data:
             "username": "loremipsum"
         },
         "page": 1,
-        "total_pages": 999,
         "data_length": 20,
         "posts": [
             {
@@ -275,7 +275,8 @@ response data:
 
 optional query:
 
-    page={number}
+    page={positive integer}
+    limit={positive integer}
 
 response data:
 
@@ -285,7 +286,6 @@ response data:
             "username": "loremipsum"
         },
         "page": 1,
-        "total_pages": 999,
         "data_length": 20,
         "liked_posts": [
             {
@@ -313,14 +313,14 @@ response data:
 
 optional query:
 
-    page={number}
+    page={positive integer}
+    limit={positive integer}
 
 response data:
 
     {
         "page": 1,
-        "total_pages": 999,
-        "data_length": 50,
+        "data_length": 20,
         "users": [
             {
                 "_id": "user_id_from_db",

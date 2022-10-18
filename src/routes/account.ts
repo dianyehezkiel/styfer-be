@@ -1,5 +1,5 @@
 import express from 'express';
-import Account from '../../models/account';
+import Account from '../models/account';
 import {
   AccountPreview,
   AccountPublic,
@@ -13,12 +13,12 @@ import {
   toPwdChangeReq,
   toSignupReq,
   isAccountPublic,
-} from '../utils';
-import { tokenExtractor, userExtractor } from '../utils/middlewares';
+} from '../lib/utils';
+import { tokenExtractor, userExtractor } from '../lib/middlewares';
 import bcrypt from 'bcrypt';
 import jwt, { Secret } from 'jsonwebtoken';
-import { SALTROUNDS } from '../../lib/constant';
-import User from '../../models/user';
+import { SALTROUNDS } from '../config';
+import User from '../models/user';
 
 const SECRET = process.env.SECRET;
 if (!SECRET) throw Error('No SECRET Defined');

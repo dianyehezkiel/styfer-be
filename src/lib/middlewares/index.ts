@@ -1,29 +1,26 @@
 import { RequestHandler } from 'express';
 import jwt, { Secret } from 'jsonwebtoken';
-import { isAccountPublic, isString } from '.';
-import { SECRET } from '../../lib/constant';
+import { isAccountPublic, isString, logger } from '../utils';
+import { SECRET } from '../../config';
 import Account from '../../models/account';
-import { AccountPublic } from '../types';
-import logger from './logger';
+import { AccountPublic } from '../../types';
 
-// interface Params {
-//   [key: string]: string;
-// }
-
-// type ResBody = Record<string, unknown>;
-
-// type ReqBody = Record<string, unknown>;
-
+/**
+ * log request information in terminal
+ * @param {Request} req 
+ * @param {Response} _res 
+ * @param {NextFunction} next 
+ */
 export const requestLogger: RequestHandler = (req, _res, next) => {
   logger.info('Method:', req.method);
   logger.info('Path:  ', req.path);
   logger.info('Body:  ', req.body);
-  logger.info('---');
+  logger.info('-----');
   next();
 };
 
 /**
- * Get token from request headers and put it to request body
+ * Get token from authorization headers and put it to request body
  * @param {Request} req 
  * @param {Response} _res 
  * @param {NextFunction} next 
@@ -46,7 +43,6 @@ export const tokenExtractor: RequestHandler = (req, _res, next) => {
 export const userExtractor: RequestHandler = (req , res, next) => {
   const token = (req.body.token as string) ?? undefined;
   if (!token) {
-    console.log('error no token');
     next();
     return;
   }
@@ -66,12 +62,8 @@ export const userExtractor: RequestHandler = (req , res, next) => {
     return;
   }
 
-  console.log(decodedToken);
-
   Account.findById<AccountPublic>(decodedToken._id)
     .then((acc) => {
-      // FUCK THIS SHIT IS ASYNC ASSIGN TO ACC
-      console.log(acc);
       req.body.acc = acc
         ? { _id: acc._id.toString(), username: acc.username } 
         : undefined;
@@ -83,5 +75,4 @@ export const userExtractor: RequestHandler = (req , res, next) => {
       });
       console.log(error);
     });
-    console.log("req on userExtractor", req.body);
 };

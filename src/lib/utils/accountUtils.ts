@@ -1,5 +1,5 @@
 import { isValidEmail, parseString } from '.';
-import { LoginReqFromFields, LoginReq, SignupReqFromFields, SignupReq, PwdChangeReqFromFields, PwdChangeReq } from '../types';
+import { LoginReqFromFields, LoginReq, SignupReqFromFields, SignupReq, PwdChangeReqFromFields, PwdChangeReq } from '../../types';
 
 export const toLoginReq = ({
   username_or_email,

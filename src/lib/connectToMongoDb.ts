@@ -1,7 +1,8 @@
 import mongoose, { Error as MongooseError } from 'mongoose';
+import { MONGODB_URI } from '../config';
 
 export default async function connectToMongoDB() {
-  const uri = process.env.TEST_MONGODB_URI;
+  const uri = MONGODB_URI;
   try {
     if (!uri) throw new Error('no uri defined in environment');
 

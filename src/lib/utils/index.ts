@@ -1,7 +1,8 @@
-import { AccountPublic } from "../types";
+import { AccountPublic } from "../../types";
 
 export * from './accountUtils';
 export * from './postUtils';
+export * from './logger';
 
 export function isString (text: unknown): text is string {
   return typeof text === 'string' || text instanceof String;

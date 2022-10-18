@@ -1,22 +1,41 @@
 import express from 'express';
-import Post from '../../models/post';
-import { AccountPublic, PostLikedBy, PostPreview } from '../types';
-import { toNewPostReq } from '../utils';
+import Post from '../models/post';
+import { AccountPublic, PostLikedBy } from '../types';
+import { toNewPostReq } from '../lib/utils';
 import { NewPostReqFromFields } from '../types';
-import { tokenExtractor, userExtractor } from '../utils/middlewares';
+import { tokenExtractor, userExtractor } from '../lib/middlewares';
 import { Types } from 'mongoose';
-import User from '../../models/user';
+import User from '../models/user';
 
 const postRouter = express.Router();
 
-postRouter.get('/', (_req, res) => {
+postRouter.get('/', (req, res) => {
+  const { page, limit } = req.query;
+
+  let pageNum = Number(page);
+  let limitNum = Number(limit);
+
+  if (isNaN(pageNum) || pageNum <= 0) {
+    pageNum = 1;
+  }
+
+  if (isNaN(limitNum) || limitNum <= 0) {
+    limitNum = 20;
+  }
+
   Post.find({})
+    .limit(limitNum)
+    .skip(((pageNum - 1) * limitNum))
     .populate('creator', {
       _id: 1,
       username: 1,
     })
     .then((posts) => {
-      res.json(posts);
+      res.json({
+        page: pageNum,
+        data_length: posts.length,
+        posts: posts
+      });
     })
     .catch((error) => {
       res.status(500).send({
@@ -29,8 +48,14 @@ postRouter.get('/:id', (req, res) => {
   const id = req.params.id;
 
   Post.findOne({ _id: id })
-    // watch below code
-    .populate<{ creator: AccountPublic }>('creator')
+    .select({
+      img_src: 1,
+      desc: 1,
+      created_at: 1,
+      likes: 1,
+      creator: 1,
+    })
+    .populate<{ creator: AccountPublic }>('creator', 'username')
     .then((post) => {
       if (!post) {
         res.status(404).send({
@@ -38,15 +63,7 @@ postRouter.get('/:id', (req, res) => {
         });
         return;
       }
-      const postInfo: PostPreview = {
-        _id: post._id.toString(),
-        img_src: post.img_src,
-        desc: post.desc,
-        created_at: post.created_at,
-        likes: post.likes,
-        creator: post.creator,
-      };
-      res.json(postInfo);
+      res.json(post);
     })
     .catch((error) => {
       res.status(500).send({
@@ -57,11 +74,23 @@ postRouter.get('/:id', (req, res) => {
 
 postRouter.get('/:id/likes', (req, res) => {
   const id = req.params.id;
+  const { page, limit } = req.query;
 
+  let pageNum = Number(page);
+  let limitNum = Number(limit);
+
+  if (isNaN(pageNum) || pageNum <= 0) {
+    pageNum = 1;
+  }
+
+  if (isNaN(limitNum) || limitNum <= 0) {
+    limitNum = 20;
+  }
+  
   Post.findById(id)
-    // watch  below code
-    .populate<{ creator: AccountPublic }>('creator')
-    .populate<{ liked_by: AccountPublic[] }>('liked_by')
+    .select({ likes: 1, liked_by: 1 })
+    .slice('liked_by', [(pageNum - 1) * limitNum, limitNum])
+    .populate<{ liked_by: AccountPublic[] }>('liked_by', 'username')
     .then((post) => {
       if (!post) {
         res.status(404).send({
@@ -74,7 +103,12 @@ postRouter.get('/:id/likes', (req, res) => {
         likes: post.likes,
         liked_by: post.liked_by,
       };
-      res.json(postLikesInfo);
+
+      res.json({
+        page: pageNum,
+        data_length: post.liked_by.length,
+        ...postLikesInfo
+      });
     })
     .catch((error) => {
       res.status(500).send({
@@ -86,20 +120,31 @@ postRouter.get('/:id/likes', (req, res) => {
 postRouter.post('/', tokenExtractor, userExtractor, (req, res) => {
   const newPostReq = toNewPostReq(req.body as NewPostReqFromFields);
   const acc = (req.body.acc as AccountPublic) ?? undefined;
+  console.log("ACC on POSTS", acc);
 
   const post = new Post({
     img_src: newPostReq.img_src,
     desc: newPostReq.desc,
-    createdAt: newPostReq.created_at,
+    created_at: newPostReq.created_at,
     creator: acc ? new Types.ObjectId(acc._id) : undefined,
     likes: 0,
     liked_by: [],
   });
 
+
   post
     .save()
     .then((savedPost) => {
-      res.send(savedPost);
+      if (!acc) {
+        res.send(savedPost);
+      }
+      return User.findOneAndUpdate({ user: acc._id }, { $push: { posts: savedPost._id }});
+    })
+    .then((updatedUser) => {
+      if (!updatedUser) {
+        return;
+      }
+      res.send(post);
     })
     .catch((error) => {
       res.status(500).send({
@@ -129,13 +174,14 @@ postRouter.put('/:id/likes', tokenExtractor, userExtractor, (req, res) => {
         });
         return;
       }
-      liked = post.liked_by.find((id) => id === userId) ? true : false;
+
+      liked = post.liked_by.find((id) => id.toString() === userId.toString()) ? true : false;
       if (!liked) {
         post.likes += 1;
         post.liked_by.push(userId);
       } else {
         post.likes -= 1;
-        const newLikedBy = post.liked_by.filter((id) => id !== userId);
+        const newLikedBy = post.liked_by.filter((id) => id.toString() !== userId.toString());
         post.liked_by = newLikedBy;
       }
 
@@ -158,7 +204,7 @@ postRouter.put('/:id/likes', tokenExtractor, userExtractor, (req, res) => {
       if (!liked) {
         user.liked_posts.push(new Types.ObjectId(postId));
       } else {
-        const newLikedPosts = user.liked_posts.filter((id) => id !== postId);
+        const newLikedPosts = user.liked_posts.filter((id) => id.toString() !== postId.toString());
         user.liked_posts = newLikedPosts;
       }
 
@@ -196,31 +242,6 @@ postRouter.delete('/:id', tokenExtractor, userExtractor, (req, res) => {
 
   const userId = new Types.ObjectId(acc._id);
 
-  // Post.findById(postId)
-  //   .then((post) => {
-  //     if (!post) {
-  //       res.status(404).send({
-  //         error: `Cannot find user with username ${acc.username}`,
-  //       });
-  //       return;
-  //     }
-
-  //     if (userId !== post.creator) {
-  //       res.status(403).send({
-  //         error: `${acc.username} is not the owner of the post`, 
-  //       });
-  //       return;
-  //     }
-
-  //     return Post.findByIdAndDelete()
-  //   })
-  //   .then()
-  //   .catch((error) => {
-  //     res.status(500).send({
-  //       error: `Error Like Post: ${error}`,
-  //     });
-  //   });
-  
   Post.findOneAndDelete({ _id: postId, creator: userId })
     .then((deletedPost) => {
       if (!deletedPost) {

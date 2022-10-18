@@ -1,5 +1,5 @@
 import { parseString } from ".";
-import { NewPostReq, NewPostReqFromFields } from "../types";
+import { NewPostReq, NewPostReqFromFields } from "../../types";
 
 export const toNewPostReq = ({
   img_src,

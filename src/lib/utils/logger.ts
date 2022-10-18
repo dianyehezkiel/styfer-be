@@ -10,7 +10,7 @@ const error = (...params: unknown[]) => {
   }
 };
 
-export default {
+export const logger = {
   info,
   error,
 };

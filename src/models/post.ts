@@ -25,7 +25,7 @@ const postSchema = new mongoose.Schema<IPost>({
   },
   creator: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: 'User',
+    ref: 'Account',
   },
   likes: {
     type: Number,
@@ -34,7 +34,7 @@ const postSchema = new mongoose.Schema<IPost>({
   liked_by: [
     {
       type: mongoose.Schema.Types.ObjectId,
-      ref: 'User',
+      ref: 'Account',
     }
   ],
 });
