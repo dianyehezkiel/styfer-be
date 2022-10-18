@@ -1,7 +1,7 @@
 {
   "apps": [
     {
-      "name": "app1",
+      "name": "styfer",
       "script": "npm",
       "args": "start"
     }
