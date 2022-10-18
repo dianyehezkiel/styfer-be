@@ -1,0 +1,9 @@
+{
+  "apps": [
+    {
+      "name": "styfer",
+      "script": "npm",
+      "args": "start"
+    }
+  ]
+}

@@ -29,7 +29,6 @@ accountRouter.use(tokenExtractor);
 
 accountRouter.get('/', userExtractor, (req, res) => {
   const acc = req.body.acc as unknown;
-  console.log('acc on router', acc);
   if (!acc || !isAccountPublic(acc)) {
     res.status(400).send({
       error: 'No account data',
